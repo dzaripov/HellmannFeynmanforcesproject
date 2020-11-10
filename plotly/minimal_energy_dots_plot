@@ -1,0 +1,37 @@
+import plotly.express as px
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+
+name = 'minimal_dkcal'
+data_filepath = f"C:/Users/Danis/Desktop/ArAr/GAMESS/excel/{name}.csv"
+df = pd.read_csv(data_filepath, encoding = 'CP1251', sep =';')
+
+
+fig = px.scatter(df, x = 'minR', y = 'min', facet_col ='moleculeName', color="dft", #line_group="CCSD", 
+              title = 'Hellmann-Feynman forces in Nobel Gases') 
+
+
+
+
+indexes = []
+for i in range(0, len(fig['data'])):
+    if fig['data'][i]['name'] == 'CCSD':
+        indexes.append(i)
+print(indexes)
+
+for i in indexes:
+    fig['data'][i]['marker']['color']="black"
+
+
+
+fig.update_xaxes(title_text='Distance, Angstrom', #constraintoward = 'bottom',
+                 range = [1.8,7.2],  # sets the range of xaxis
+                 constrain="domain", matches = None # meanwhile compresses the xaxis by decreasing its "domain"
+)
+fig.update_yaxes(title_text='Hellmann-Feynman forces', showticklabels=True, matches=None)
+fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+
+
+fig.show()
+fig.write_html(f"C:/Users/Danis/Desktop/ArAr/graphics/GAMESS_{name}.html")

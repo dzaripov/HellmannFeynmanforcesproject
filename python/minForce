@@ -1,0 +1,57 @@
+#min force
+name = 'forces_with_errors'
+
+
+data_filepath = f"C:/Users/Danis/Desktop/ArAr/GAMESS/excel/{name}.csv"
+df = pd.read_csv(data_filepath, encoding = 'CP1251', sep =';')
+df_dict = df.to_dict(orient = 'records')
+
+
+moleculeNames = ['HeHe', 'HeNe', 'HeAr', 'HeKr', 'NeNe', 'NeAr', 'NeKr', 'ArAr', 'ArKr', 'KrKr']
+functionalsTest = ['HCTH-P76', 'HCTH-P14', 'PBE0']
+functionalsAll = ['PBE', 'SLATER', 'EDF1', 'MPWLYP1W', 'HLE16', 'HCTH407', 'CHACHIYO', 'SOGGA11', 'BLYP', 'GAM', 'AM05', 'N12', 'SOGGA11X', 'N12SX', 'PBE0', 'PBESOL', 'B3LYPV1R', 'APF', 'B1LYP', 'BHHLYP',
+               'B97', 'B97-1', 'B97-2', 'B97-3', 'WB97', 'WB97X', 'HSE06', 'CAMB3LYP', 'QTP17', 'LRC-WPBEH', 'EDF2', 'CAMQTP00', 'CAMQTP01', 'CAMQTP02', 'LC-QTP',
+               'DLDF', 'MN12SX', 'MN12L', 'M11L', 'M11', 'M08-SO', 'M08-HX', 'revM11', 'M06L', 'M062X', 'M06HF', 'M06', 'M05', 'M052X', 'MN15L', 'MN15', 'revM06', 'revM06L', 'HLE17', 'VSXC',
+               'TPSS', 'revTPSS', 'SCAN', 'revSCAN', 'RSCAN', 'SCAN0', 'TPSSH', 'HCTH-P76', 'HCTH-P14', 'CCSD']
+
+list1 = []
+for R in np.arange(2,7.01,0.1):
+    list1.append(round(R,3))
+print(list1)
+
+with open(f'C:/Users/Danis/Desktop/ArAr/GAMESS/excel/minimal_forces_with_errors.csv', 'w') as file_csv:
+        file_csv.write('moleculeName;dft;minRForce;\n')
+        new_dict = {}
+        final_dict = {}
+        indexes = []
+        for dft in functionalsAll:
+            new_dict[dft] = {}
+        for moleculeName in moleculeNames:
+            final_dict[moleculeName] = {}
+            new_dict[moleculeName] = {}
+            for dft in functionalsAll:
+                final_dict[moleculeName][dft] = {}
+                for i in range(0,len(df_dict)):
+                    if df_dict[i]['moleculeName'] == moleculeName:
+                        if df_dict[i]['dft'] == dft:
+                            indexes.append(i)
+                for i, R in zip(indexes, list1):
+                    final_dict[moleculeName][dft][R] = round(df_dict[i]['forces'],10)
+                for R in list1:
+                    try:
+                        if final_dict[moleculeName][dft][R] < 0:
+                            break
+                    except:
+                        pass
+                try:
+                    min1 = final_dict[moleculeName][dft][round(R-0.1,3)]
+                    min2 = final_dict[moleculeName][dft][R]
+                    minRForce = min1/(min1+abs(min2))*0.1+round(R-0.1,3)
+                    print(f'{moleculeName};{dft};{minRForce};{final_dict[moleculeName][dft][round(R-0.1,3)]};{final_dict[moleculeName][dft][R]}\n')
+                    indexes = []
+                    file_csv.write(f'{moleculeName};{dft};{minRForce}\n')
+                except KeyError:
+                    minRForce = 2.0
+                    print(f'{moleculeName};{dft};{minRForce}')
+                    indexes = []
+                    file_csv.write(f'{moleculeName};{dft};{minRForce}\n')
